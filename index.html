@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Network Troubleshooting Simulator</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#151d32; --panel2:#1c2842; --text:#eef3ff; --muted:#aab6d3; --accent:#62d6b5; --blue:#80aaff; --danger:#ff8794; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; background:radial-gradient(circle at top,#1b2c4a 0,#0b1020 55%); color:var(--text); min-height:100vh; }
+  .wrap { width:min(1000px,92%); margin:0 auto; padding:36px 0 48px; }
+  header { margin-bottom:24px; }
+  .eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.15em; font-size:.75rem; font-weight:800; }
+  h1 { font-size:clamp(2rem,5vw,3.1rem); margin:8px 0; line-height:1.1; }
+  .subtitle { color:var(--muted); max-width:700px; line-height:1.6; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin:20px 0; }
+  .stat { background:rgba(21,29,50,.9); border:1px solid #2b3958; border-radius:14px; padding:12px 16px; min-width:120px; }
+  .stat span { display:block; color:var(--muted); font-size:.8rem; }
+  .stat strong { display:block; font-size:1.35rem; margin-top:3px; }
+  .layout { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .panel { background:rgba(21,29,50,.96); border:1px solid #2b3958; border-radius:18px; padding:22px; box-shadow:0 12px 35px #0002; }
+  .panel h2 { margin:0 0 12px; font-size:1.15rem; }
+  .problem-tag { display:inline-block; color:#111827; background:var(--blue); border-radius:999px; padding:5px 10px; font-size:.75rem; font-weight:800; margin-bottom:12px; }
+  #scenario { font-size:1.15rem; line-height:1.55; margin:0 0 12px; }
+  .hint { color:var(--muted); font-size:.9rem; line-height:1.5; }
+  .network { margin-top:18px; display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; padding:16px 8px; background:#0e1629; border:1px solid #293858; border-radius:14px; }
+  .device { width:90px; text-align:center; color:var(--muted); font-size:.78rem; }
+  .device .emoji { font-size:1.7rem; display:block; margin-bottom:4px; }
+  .line { height:3px; width:34px; background:var(--accent); border-radius:4px; position:relative; }
+  .line.broken { background:repeating-linear-gradient(90deg,var(--danger) 0 7px,transparent 7px 12px); }
+  .options { display:grid; gap:10px; margin:16px 0; }
+  .option { display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid #344362; border-radius:12px; background:#10192c; cursor:pointer; line-height:1.4; transition:.15s; }
+  .option:hover { border-color:var(--blue); }
+  .option:has(input:checked) { border-color:var(--blue); background:#1a2945; }
+  .option input { margin-top:4px; accent-color:var(--accent); }
+  button { font:inherit; font-weight:750; border:0; border-radius:11px; padding:12px 16px; cursor:pointer; transition:transform .12s,opacity .12s; }
+  button:hover { transform:translateY(-1px); }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  .primary { background:var(--accent); color:#09201b; }
+  .secondary { background:#2a3857; color:var(--text); border:1px solid #425477; }
+  .buttons { display:flex; gap:10px; flex-wrap:wrap; }
+  #feedback { display:none; margin-top:15px; padding:14px; border-radius:12px; line-height:1.5; }
+  #feedback.good { display:block; background:#14372f; border:1px solid #287b65; }
+  #feedback.bad { display:block; background:#3b202d; border:1px solid #8b4056; }
+  #feedback strong { display:block; margin-bottom:4px; }
+  .footer { color:var(--muted); font-size:.8rem; margin-top:20px; text-align:center; }
+  @media(max-width:720px) { .layout { grid-template-columns:1fr; } .panel { padding:18px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Interactive CS Learning Lab</div>
+    <h1>Network Troubleshooting<br>Simulator</h1>
+    <p class="subtitle">Practice diagnosing common network issues in a safe, simulated environment. Read the scenario, choose a fix, and learn why it works.</p>
+    <div class="stats">
+      <div class="stat"><span>Score</span><strong id="score">0 / 0</strong></div>
+      <div class="stat"><span>Scenario</span><strong id="progress">1 of 5</strong></div>
+      <div class="stat"><span>Correct answers</span><strong id="correct">0</strong></div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <span class="problem-tag" id="category">IP Addressing</span>
+      <h2>What's going wrong?</h2>
+      <p id="scenario">A computer can connect to the local network but cannot reach other networks. Its IP address is 169.254.12.8.</p>
+      <p class="hint" id="clue">Clue: Think about what a device does when it cannot get an address from DHCP.</p>
+      <div class="network" aria-label="Simplified network diagram">
+        <div class="device"><span class="emoji">💻</span>Computer</div>
+        <div class="line" id="line1"></div>
+        <div class="device"><span class="emoji">🔀</span>Switch</div>
+        <div class="line" id="line2"></div>
+        <div class="device"><span class="emoji">📡</span>Router</div>
+      </div>
+      <p class="hint" style="margin-bottom:0">This diagram is a simplified model. No real network settings will be changed.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Choose a troubleshooting step</h2>
+      <p class="hint">Select the best first fix, then check your answer.</p>
+      <form id="answerForm">
+        <div class="options" id="options"></div>
+        <div class="buttons">
+          <button class="primary" type="submit">Check solution</button>
+          <button class="secondary" type="button" id="hintBtn">Show hint</button>
+        </div>
+      </form>
+      <div id="feedback" role="status" aria-live="polite"></div>
+      <div class="buttons" style="margin-top:14px">
+        <button class="secondary" type="button" id="nextBtn" hidden>Next scenario →</button>
+        <button class="secondary" type="button" id="restartBtn">Restart practice</button>
+      </div>
+    </section>
+  </main>
+  <p class="footer">Educational prototype • All scenarios are fictional and simulated.</p>
+</div>
+<script>
+const scenarios = [
+  {
+    category: 'IP Addressing',
+    scenario: 'A computer cannot reach the internet. Its IP address is 169.254.12.8, even though it should receive an address automatically.',
+    clue: 'Clue: An address beginning with 169.254 often means the computer did not receive an address from DHCP.',
+    options: [
+      'Check the DHCP service and connection, then renew the computer’s IP address.',
+      'Change the monitor resolution.',
+      'Delete every file on the computer.',
+      'Replace the keyboard.'
+    ],
+    answer: 0,
+    explanation: 'Correct! A 169.254.x.x address is commonly a self-assigned link-local address. Check the physical or Wi-Fi connection and DHCP availability, then renew the IP address. Do not randomly assign an address without knowing the network configuration.'
+  },
+  {
+    category: 'DNS',
+    scenario: 'A user can open a website by entering its IP address, but the site will not load when they type its domain name.',
+    clue: 'Clue: One service translates human-friendly domain names into IP addresses.',
+    options: [
+      'Check the DNS server settings and test name resolution.',
+      'Turn the speakers up.',
+      'Increase the screen brightness.',
+      'Rename the computer to the website’s domain name.'
+    ],
+    answer: 0,
+    explanation: 'Correct! DNS translates domain names into IP addresses. Since the site works by IP address, checking DNS settings and testing name resolution is a sensible next step.'
+  },
+  {
+    category: 'Physical Connection',
+    scenario: 'A desktop computer suddenly loses its wired network connection. The network cable is loose, and the port light is off.',
+    clue: 'Clue: Start with the simplest physical causes before changing software settings.',
+    options: [
+      'Make sure the cable is securely connected and test with a known-working cable or port.',
+      'Reinstall the operating system immediately.',
+      'Change the computer’s wallpaper.',
+      'Disable all security updates.'
+    ],
+    answer: 0,
+    explanation: 'Correct! A loose cable and no link light point toward a physical connection issue. Reseat the cable and test another known-working cable or switch port before moving to more complex checks.'
+  },
+  {
+    category: 'Default Gateway',
+    scenario: 'A computer can communicate with other devices on its local network but cannot reach websites outside that network. Its default gateway is blank.',
+    clue: 'Clue: Devices use a particular router address to send traffic to other networks.',
+    options: [
+      'Check that the correct default gateway is supplied by DHCP or configured by the network administrator.',
+      'Change the computer’s desktop background.',
+      'Remove the network adapter.',
+      'Set the gateway to any random IP address.'
+    ],
+    answer: 0,
+    explanation: 'Correct! The default gateway is usually the local router that forwards traffic to other networks. Verify the correct gateway for this network; do not guess an address.'
+  },
+  {
+    category: 'Wi-Fi',
+    scenario: 'A laptop cannot join the office Wi-Fi, while nearby devices connect successfully. The laptop is trying to use an old saved password.',
+    clue: 'Clue: If other devices work, focus first on the settings of the device that cannot connect.',
+    options: [
+      'Verify the network name and password, then forget and reconnect to the Wi-Fi network if needed.',
+      'Restart every computer in the building.',
+      'Change the router’s IP address without permission.',
+      'Turn off the laptop screen.'
+    ],
+    answer: 0,
+    explanation: 'Correct! An outdated saved password can prevent authentication. Verify the correct network and password, then reconnect. If it still fails, check the device’s Wi-Fi settings and any access restrictions.'
+  }
+];
+let current = 0;
+let answered = false;
+let correctCount = 0;
+let attempts = 0;
+const $ = id => document.getElementById(id);
+function render() {
+  const s = scenarios[current];
+  $('category').textContent = s.category;
+  $('scenario').textContent = s.scenario;
+  $('clue').textContent = 'Clue: Think through the symptoms before choosing a fix.';
+  $('progress').textContent = `${current + 1} of ${scenarios.length}`;
+  $('score').textContent = `${correctCount} / ${attempts}`;
+  $('correct').textContent = correctCount;
+  $('feedback').className = '';
+  $('feedback').style.display = 'none';
+  $('feedback').textContent = '';
+  $('nextBtn').hidden = true;
+  $('hintBtn').disabled = false;
+  answered = false;
+  $('options').innerHTML = '';
+  s.options.forEach((option, i) => {
+    const label = document.createElement('label');
+    label.className = 'option';
+    const radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'answer'; radio.value = i; radio.required = true;
+    const span = document.createElement('span'); span.textContent = option;
+    label.append(radio, span); $('options').appendChild(label);
+  });
+  $('line1').className = 'line'; $('line2').className = 'line';
+}
+$('answerForm').addEventListener('submit', event => {
+  event.preventDefault();
+  if (answered) return;
+  const selected = document.querySelector('input[name="answer"]:checked');
+  if (!selected) {
+    $('feedback').className = 'bad'; $('feedback').style.display = 'block';
+    $('feedback').innerHTML = '<strong>Choose an answer first.</strong>Select the option you think is the best fix.';
+    return;
+  }
+  attempts++;
+  answered = true;
+  const isCorrect = Number(selected.value) === scenarios[current].answer;
+  if (isCorrect) correctCount++;
+  $('score').textContent = `${correctCount} / ${attempts}`;
+  $('correct').textContent = correctCount;
+  $('feedback').className = isCorrect ? 'good' : 'bad';
+  $('feedback').style.display = 'block';
+  const title = isCorrect ? 'That’s correct!' : 'Not quite — review the best fix.';
+  $('feedback').innerHTML = '';
+  const strong = document.createElement('strong'); strong.textContent = title;
+  const explanation = document.createElement('span'); explanation.textContent = scenarios[current].explanation;
+  $('feedback').append(strong, explanation);
+  document.querySelectorAll('input[name="answer"]').forEach(input => input.disabled = true);
+  $('nextBtn').hidden = false;
+  $('nextBtn').textContent = current === scenarios.length - 1 ? 'See results ↻' : 'Next scenario →';
+  $('hintBtn').disabled = true;
+});
+$('hintBtn').addEventListener('click', () => {
+  $('clue').textContent = scenarios[current].clue;
+});
+$('nextBtn').addEventListener('click', () => {
+  if (current < scenarios.length - 1) {
+    current++;
+    render();
+  } else {
+    const percentage = attempts ? Math.round(correctCount / attempts * 100) : 0;
+    $('category').textContent = 'Practice complete';
+    $('scenario').textContent = `You finished all ${scenarios.length} scenarios! Your first-try score was ${correctCount} out of ${attempts} (${percentage}%).`;
+    $('clue').textContent = 'Restart to practice the scenarios again and improve your troubleshooting skills.';
+    $('options').innerHTML = '<p class="hint">Great work. Review the explanations, then try again to improve your score.</p>';
+    $('feedback').style.display = 'none'; $('nextBtn').hidden = true; $('hintBtn').disabled = true;
+    $('progress').textContent = `${scenarios.length} of ${scenarios.length}`;
+  }
+});
+$('restartBtn').addEventListener('click', () => { current = 0; correctCount = 0; attempts = 0; render(); });
+render();
+</script>
+</body>
+</html>
