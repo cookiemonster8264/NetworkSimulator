@@ -13,6 +13,22 @@
   .eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.15em; font-size:.75rem; font-weight:800; }
   h1 { font-size:clamp(2rem,5vw,3.1rem); margin:8px 0; line-height:1.1; }
   .subtitle { color:var(--muted); max-width:700px; line-height:1.6; }
+  .project-link {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:18px;
+    padding:10px 14px;
+    border-radius:999px;
+    background:rgba(98,214,181,.12);
+    border:1px solid rgba(98,214,181,.45);
+    color:var(--text);
+    text-decoration:none;
+    font-weight:700;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .project-link:hover { transform:translateY(-1px); border-color:var(--accent); background:rgba(98,214,181,.18); }
+  .project-link:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
   .stats { display:flex; gap:12px; flex-wrap:wrap; margin:20px 0; }
   .stat { background:rgba(21,29,50,.9); border:1px solid #2b3958; border-radius:14px; padding:12px 16px; min-width:120px; }
   .stat span { display:block; color:var(--muted); font-size:.8rem; }
@@ -53,6 +69,7 @@
     <div class="eyebrow">Interactive CS Learning Lab</div>
     <h1>Network Troubleshooting<br>Simulator</h1>
     <p class="subtitle">Practice diagnosing common network issues in a safe, simulated environment. Read the scenario, choose a fix, and learn why it works.</p>
+    <a class="project-link" href="https://github.com/cookiemonster8264/NetworkSimulator" target="_blank" rel="noreferrer">View project on GitHub →</a>
     <div class="stats">
       <div class="stat"><span>Score</span><strong id="score">0 / 0</strong></div>
       <div class="stat"><span>Scenario</span><strong id="progress">1 of 5</strong></div>
@@ -134,7 +151,7 @@ const scenarios = [
       'Disable all security updates.'
     ],
     answer: 0,
-    explanation: 'Correct! A loose cable and no link light point toward a physical connection issue. Reseat the cable and test another known-working cable or switch port before moving to more complex checks.'
+    explanation: 'Correct! A loose cable and no link light point toward a physical connection issue. Reseat the cable and test another known-working cable or switch port before moving to more complex troubleshooting.'
   },
   {
     category: 'Default Gateway',
@@ -160,7 +177,7 @@ const scenarios = [
       'Turn off the laptop screen.'
     ],
     answer: 0,
-    explanation: 'Correct! An outdated saved password can prevent authentication. Verify the correct network and password, then reconnect. If it still fails, check the device’s Wi-Fi settings and any access restrictions.'
+    explanation: 'Correct! An outdated saved password can prevent authentication. Verify the correct network and password, then reconnect. If it still fails, check the device’s Wi‑Fi settings and any access restrictions.'
   }
 ];
 let current = 0;
